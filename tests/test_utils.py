@@ -1,33 +1,23 @@
-from unittest.mock import mock_open, patch
-
-from src.utils import create_objects_from_json, read_json
+from src.utils import JSONSaver
 
 
-@patch(
-    "builtins.open",
-    new_callable=mock_open,
-    read_data='[{"name": "Смартфоны", "description": "Samsung"}]',
-)
-def test_read_json(mock_file):
-    data = read_json("data/products.json")
-    assert data == [{"name": "Смартфоны", "description": "Samsung"}]
+def test_add_vacancy(vacancy_1):
+    json_saver = JSONSaver()
+    assert len(json_saver.vacancies_list) == 0
+    vacancy = vacancy_1.vacancy_dict()
+    json_saver.add_vacancy(vacancy)
+    assert len(json_saver.vacancies_list) == 1
 
 
-def test_create_objects_from_json():
-    result = create_objects_from_json(
-        [
-            {
-                "name": "Смартфоны",
-                "description": "Смартфоны, как средство не только коммуникации",
-                "products": [
-                    {
-                        "name": "Samsung Galaxy C23 Ultra",
-                        "description": "256GB, Серый цвет, 200MP камера",
-                        "price": 180000.0,
-                        "quantity": 5,
-                    }
-                ],
-            }
-        ]
-    )
-    assert result[0].name == "Смартфоны"
+def test_delete_vacancy(vacancy_1, vacancy_2, vacancy_3):
+    json_saver = JSONSaver()
+    assert len(json_saver.vacancies_list) == 0
+    vacancy = vacancy_1.vacancy_dict()
+    vacancy2 = vacancy_2.vacancy_dict()
+    vacancy3 = vacancy_3.vacancy_dict()
+    json_saver.add_vacancy(vacancy)
+    json_saver.add_vacancy(vacancy2)
+    json_saver.add_vacancy(vacancy3)
+    assert len(json_saver.vacancies_list) == 3
+    json_saver.delete_vacancies()
+    assert len(json_saver.vacancies_list) == 0
