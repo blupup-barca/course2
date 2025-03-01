@@ -1,50 +1,72 @@
-from src.vacancies import Vacancies
+from abc import ABC, abstractmethod
+import json
+from typing import List
+
+from src.vacancy import Vacancy
 
 
-def compare_salaries(vacancies: list, name1: str, name2: str) -> bool:
-    """True, если зарплата первой вакансии больше"""
+class Saver(ABC):
+    """Абстрактный класс для сохранения файла в разном виде"""
+    @abstractmethod
+    def add_vacancy(self, vacancy):
+        """Добавление вакансии"""
+        pass
 
-    vacancy_dict1 = {}
-    vacancy_dict2 = {}
+    @abstractmethod
+    def read_file(self):
+        """Получение вакансии"""
+        pass
 
-    for vacancy in vacancies:
-        if name1.lower() == vacancy["name"].lower():
-            vacancy_dict1 = vacancy
-            break
-
-    for vacancy in vacancies:
-        if name2.lower() == vacancy["name"].lower() and vacancy != vacancy_dict1:
-            vacancy_dict2 = vacancy
-            break
-
-    vacancy1 = Vacancies(**vacancy_dict1)
-    vacancy2 = Vacancies(**vacancy_dict2)
-    return vacancy1.__ge__(vacancy2)
+    @abstractmethod
+    def delete_vacancies(self):
+        """Удаление вакансии"""
+        pass
 
 
-# if __name__ == "__main__":
-#     vacancie_list = [
-#         {
-#             "name": "Тестировщик",
-#             "url": "https://hh.ru/",
-#             "salary": {"from": 1, "to": 2, "currency": "RUB"},
-#             "responsibility": "Как-то",
-#             "requirements": "Что-то",
-#         },
-#         {
-#             "name": "Разработчик",
-#             "url": "https://hh.ru/",
-#             "salary": {"from": 1, "to": 2, "currency": "RUB"},
-#             "responsibility": "разрабатывать",
-#             "requirements": "жив",
-#         },
-#         {
-#             "name": "Разработчик",
-#             "url": "https://hh.ru/",
-#             "salary": {"from": 1, "to": 2, "currency": "RUB"},
-#             "responsibility": "Обязанности не указаны",
-#             "requirements": "Требования не указаны",
-#         }
-#     ]
-#
-#     print(compare_salaries(vacancie_list, "тестировщик", "разработчик"))
+class JSONSaver(Saver):
+    """Класс для сохранения файла в JSON и работы с ним"""
+    vacancies_count = 0
+
+    def __init__(self) -> None:
+        """Инициализация"""
+        self.vacancies_list = []
+
+    def fill_in_the_file(self, vacancies_list: List) -> None:
+        """Функция для записи списка вакансий в файл"""
+        try:
+            with open('data/vacancies.json', 'w', encoding="utf-8") as f:
+                json.dump(vacancies_list, f, ensure_ascii=False)
+        except (FileNotFoundError, ValueError):
+            with open('data/vacancies.json', 'a+', encoding="utf-8") as f:
+                json.dump(vacancies_list, f, ensure_ascii=False)
+                self.vacancies_list.append(vacancies_list)
+
+    def add_vacancy(self, vacancy: dict) -> None:
+        """Добавление вакансии"""
+        try:
+            with open('data/vacancies.json', "r", encoding="utf-8") as json_file:
+                file_data = json.loads(json_file.read())
+            file_data.append(vacancy)
+            self.vacancies_list.append(file_data)
+            with open('data/vacancies.json', 'w', encoding="utf-8") as f:
+                json.dump(file_data, f, ensure_ascii=False)
+        except (FileNotFoundError, ValueError):
+            with open('data/vacancies.json', 'a+', encoding="utf-8") as f:
+                json.dump([vacancy], f, ensure_ascii=False)
+                self.vacancies_list.append(vacancy)
+
+    def read_file(self) -> List:
+        """Получение вакансий"""
+        try:
+            with open('data/vacancies.json', "r", encoding="UTF-8") as json_file:
+                vacancies = json.loads(json_file.read())
+            self.vacancies_list = [Vacancy(i) for i in vacancies]
+            return self.vacancies_list
+        except (FileNotFoundError, ValueError):
+            return self.vacancies_list
+
+    def delete_vacancies(self) -> None:
+        """Удаление вакансий"""
+        with open('data/vacancies.json', 'w'):
+            self.vacancies_list = []
+            pass

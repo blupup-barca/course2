@@ -1,79 +1,44 @@
-from src.vacancies import Vacancies
+from src.vacancies import Vacancy
 
-vac1 = Vacancies("Тестировщик", "https://hh.ru/", {"from": 1, "to": 2, "currency": "RUB"}, "Как-то", "Что-то")
-vac2 = Vacancies.get_vacancies_from_list(
-    [
-        {
-            "name": "Разработчик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 1, "to": 2, "currency": "RUB"},
-            "snippet": {"responsibility": "разрабатывать", "requirements": "жив"},
-        }
-    ]
-)
-
-vac1.clear_list()
+import pytest
 
 
-def test_init_vacancies():
-    assert vac1.name == "Тестировщик"
-    assert vac1.url == "https://hh.ru/"
-    assert vac1.salary == {"from": 1, "to": 2, "currency": "RUB"}
-    assert vac1.responsibility == "Как-то"
-    assert vac1.requirements == "Что-то"
+def test_vacancies_init(vacancy_1, vacancy_2):
+    assert vacancy_1.name == "Junior Python Developer"
+    assert vacancy_1.vacancy_id == "https://hh.ru/vacancy/105338726"
+    assert vacancy_1.salary == 0
+    assert vacancy_1.description == "Требования: опыт работы от 2 лет..."
+    assert vacancy_2.name == "Junior Python Developer"
+    assert vacancy_2.vacancy_id == "https://hh.ru/vacancy/105338543"
+    assert vacancy_2.salary == 10000
+    assert vacancy_2.description == "Требования: опыт работы от 1 лет..."
 
 
-def test_get_vacancies_from_list():
-    vac1.clear_list()
-    assert vac2 == [
-        {
-            "name": "Тестировщик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 1, "to": 2, "currency": "RUB"},
-            "responsibility": "Как-то",
-            "requirements": "Что-то",
-        },
-        {
-            "name": "Разработчик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 1, "to": 2, "currency": "RUB"},
-            "responsibility": "разрабатывать",
-            "requirements": "жив",
-        },
-    ]
+def test_setter_salary(vacancy_1):
+    assert vacancy_1.salary == 0
+    vacancy_1.salary = 100000
+    assert vacancy_1.salary == 100000
 
 
-def test_validate_data():
-    vac3 = Vacancies.get_vacancies_from_list(
-        [
-            {
-                "name": "Разработчик",
-                "alternate_url": "https://hh.ru/",
-                "salary": {"from": 1, "to": 2, "currency": "RUB"},
-                "snippet": {},
-            }
-        ]
-    )
-    assert vac3 == [
-        {
-            "name": "Разработчик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 1, "to": 2, "currency": "RUB"},
-            "responsibility": "Обязанности не указаны",
-            "requirements": "Требования не указаны",
-        },
-    ]
+def test_vacancies_create():
+    vacancy = {"name": "Go Developer",
+            "alternate_url": "https://hh.ru/vacancy/123567",
+            "salary": {"from": 150000},
+            "snippet": {"responsibility": "Требования: опыт работы от 3 лет..."}
+    }
+    vacancy = Vacancy(vacancy)
+    vacancy.name = "Go Developer"
+    vacancy.vacancy_id = "https://hh.ru/vacancy/123567"
+    vacancy.salary = 150000
+    vacancy.description = "Требования: опыт работы от 3 лет..."
 
+def test_compare_salaries(vacancy_1, vacancy_2):
+    assert vacancy_1.compare_salaries(vacancy_2) == 'У https://hh.ru/vacancy/105338543 зарплата больше'
 
-def test_str_vacancies():
-    assert (
-        str(vac1)
-        == "Тестировщик - https://hh.ru/. Зарплата: {'from': 1, 'to': 2, 'currency': 'RUB'}. Описание: Как-то. Требования: Что-то."
-    )
+def test_compare_salaries_error(vacancy_1):
+    with pytest.raises(ValueError) as exc_info:
+        assert vacancy_1.compare_salaries(1)
+    assert str(exc_info.value) == "Это не сравнение вакансий!"
 
-
-def test_comparison_vacancies():
-    vac4 = Vacancies("Разработчик", "https://hh.ru/", {"from": 3, "to": 4, "currency": "RUB"}, "Как-то", "Что-то")
-    assert vac1.__ge__(vac4) == False
-    vac5 = Vacancies("Разработчик", "https://hh.ru/", {"from": 1, "to": 2, "currency": "RUB"}, "Как-то", "Что-то")
-    assert vac1.__ge__(vac5) == True
+def test_dict(vacancy_1):
+    assert vacancy_1.vacancy_dict() == {'name': "Junior Python Developer", 'vacancy_id': "https://hh.ru/vacancy/105338726", 'salary': 0, 'description': "Требования: опыт работы от 2 лет..."}

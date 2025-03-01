@@ -1,29 +1,23 @@
-from src.utils import compare_salaries
+from src.utils import JSONSaver
 
 
-def test_compare_salaries():
-    vacancies_list = [
-        {
-            "name": "Тестировщик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 1, "to": 2, "currency": "RUB"},
-            "responsibility": "Как-то",
-            "requirements": "Что-то",
-        },
-        {
-            "name": "Разработчик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 1, "to": 2, "currency": "RUB"},
-            "responsibility": "разрабатывать",
-            "requirements": "жив",
-        },
-        {
-            "name": "Разработчик",
-            "url": "https://hh.ru/",
-            "salary": {"from": 4, "to": 5, "currency": "RUB"},
-            "responsibility": "Обязанности не указаны",
-            "requirements": "Требования не указаны",
-        },
-    ]
-    assert (compare_salaries(vacancies_list, "тестировщик", "Разработчик")) == True
-    assert (compare_salaries(vacancies_list, "Разработчик", "разработчик")) == False
+def test_add_vacancy(vacancy_1):
+    json_saver = JSONSaver()
+    assert len(json_saver.vacancies_list) == 0
+    vacancy = vacancy_1.vacancy_dict()
+    json_saver.add_vacancy(vacancy)
+    assert len(json_saver.vacancies_list) == 1
+
+
+def test_delete_vacancy(vacancy_1, vacancy_2, vacancy_3):
+    json_saver = JSONSaver()
+    assert len(json_saver.vacancies_list) == 0
+    vacancy = vacancy_1.vacancy_dict()
+    vacancy2 = vacancy_2.vacancy_dict()
+    vacancy3 = vacancy_3.vacancy_dict()
+    json_saver.add_vacancy(vacancy)
+    json_saver.add_vacancy(vacancy2)
+    json_saver.add_vacancy(vacancy3)
+    assert len(json_saver.vacancies_list) == 3
+    json_saver.delete_vacancies()
+    assert len(json_saver.vacancies_list) == 0
